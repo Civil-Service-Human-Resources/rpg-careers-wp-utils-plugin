@@ -43,6 +43,7 @@ class rpgutils{
 		add_action('add_meta_boxes_page', array($this, 'add_meta_boxes'), 10, 2);
 		add_action('admin_init', array($this, 'admin_init'));
 
+		add_filter('filter_gtm_instance', array($this, 'filter_gtm_instance'),1);
 		//add_action('shutdown', array($this, 'sql_logger'));
 	}
 
@@ -61,6 +62,7 @@ class rpgutils{
 		add_action('save_post', array($this, 'save_post'),10, 3);
 		add_action('admin_notices', array($this, 'handle_admin_error'));
 		add_action('load-edit.php', array($this, 'load_edit'));
+		
 
 		//GET ALL CURRENT TEAMS AND STORE THEM - SAVES LOOKUPS LATER ON IN CODE
 		$teams = array();
@@ -83,6 +85,10 @@ class rpgutils{
 		update_option('date_format', 'd/m/y');
 		update_option('time_format', 'H:i');
 
+		//UNCOMMENT THIS TO REMOVE UNWANTED CAPABILITIES - SET THEM IN THE FUNCTION
+		//$this->clean_unwanted_caps();
+
+		//***START: KEEP AT BOTTOM OF FUNCTION***
 		//NB: KEEP AT BOTTOM OF FUNCTION AS A FEW return STATEMENTS TO BE CAREFUL OF
 		global $pagenow;
 		if ($pagenow!=='profile.php' && $pagenow!=='user-edit.php') {
@@ -96,9 +102,14 @@ class rpgutils{
  
 		//CALL OFF TO AMEND THE PROFILE SCREEN
 		add_action('admin_footer', array($this,'amend_profile_fields_disable_js'));
-
+		//***END: KEEP AT BOTTOM OF FUNCTION***
 	}
 	
+	function filter_gtm_instance($code_tag){
+		$code_tag=str_replace('!!CONTAINER_ID!!', 'GTM-K3F4QWK', $code_tag);
+		return $code_tag;
+	}
+
 	function load_edit(){
 		if ($_GET['post_type'] !== 'page') return;
 		add_filter('posts_join', array($this, 'posts_join'), 10, 2);
@@ -551,6 +562,16 @@ class rpgutils{
 		add_role('content_publisher', __('Content Publisher'), $contentPublisherCaps);
 		add_role('content_admin', __('Content Admin'), $contentAdminCaps);
 		add_role('content_snippets', __('Content Snippets'), $contentSnippets);
+	}
+
+	function clean_unwanted_caps(){
+		$delete_caps = array('ow_delete_workflow_history');
+		global $wp_roles;
+		foreach ($delete_caps as $cap) {
+			foreach (array_keys($wp_roles->roles) as $role) {
+				$wp_roles->remove_cap($role, $cap);
+			}
+		}
 	}
 
     function register_user_taxonomy() {
