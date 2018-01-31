@@ -88,6 +88,8 @@ class rpgutils{
 		//UNCOMMENT THIS TO REMOVE UNWANTED CAPABILITIES - SET THEM IN THE FUNCTION
 		//$this->clean_unwanted_caps();
 
+		add_meta_box('submitdiv', 'Publish', array($this, 'custom_sumbit_meta_box'), 'page', 'side', 'high');
+
 		//***START: KEEP AT BOTTOM OF FUNCTION***
 		//NB: KEEP AT BOTTOM OF FUNCTION AS A FEW return STATEMENTS TO BE CAREFUL OF
 		global $pagenow;
@@ -105,8 +107,56 @@ class rpgutils{
 		//***END: KEEP AT BOTTOM OF FUNCTION***
 	}
 	
+	function custom_sumbit_meta_box(){
+		global $post;
+		
+		if($post->post_type!=='page'){ return;}
+
+		remove_meta_box('submitdiv', 'page', 'side');
+
+	?>
+		<div class="submitbox" id="submitpost">
+		<div id="minor-publishing">
+		<div style="display:none;">
+		<p class="submit"><input type="submit" name="save" id="save" class="button" value="Save"></p></div>
+
+		<div id="minor-publishing-actions">
+		<div id="save-action">
+		<input type="submit" name="save" id="save-post" value="Save" class="button">
+		<span class="spinner"></span>
+		</div>
+		<div id="preview-action">
+		<a class="preview button" href="http://develop.bg4bibpwqg.eu-west-1.elasticbeanstalk.com/?page_id=523&amp;preview=true" target="wp-preview-523" id="post-preview">Preview<span class="screen-reader-text"> (opens in a new window)</span></a>
+		<input type="hidden" name="wp-preview" id="wp-preview" value="">
+		</div>
+		<div class="clear"></div>
+		</div>
+		
+		<div id="misc-publishing-actions">
+		<div class="misc-pub-section misc-pub-post-status">
+		Status: <span id="post-status-display"><?php echo ucfirst($post->post_status); ?></span>
+		</div>
+		</div>
+		</div>
+
+		<div id="major-publishing-actions">
+		<div id="publishing-action" style="width: 100%;">
+		<span class="spinner"></span>
+		<input name="original_publish" type="hidden" id="original_publish" value="Publish">
+		<input type="submit" name="publish" id="publish" class="button button-primary button-large" value="Publish" style="display: none;">
+		</div>
+		<div class="clear"></div>
+		</div>
+		</div>
+        <?php
+	}
+
 	function filter_gtm_instance($code_tag){
-		$code_tag=str_replace('!!CONTAINER_ID!!', 'GTM-K3F4QWK', $code_tag);
+		if(GTM_ON){
+			$code_tag=str_replace('!!CONTAINER_ID!!', GTM_CONTAINER_ID, $code_tag);
+		}else{
+			$code_tag = '';
+		}
 		return $code_tag;
 	}
 
@@ -140,7 +190,7 @@ class rpgutils{
 				wp_enqueue_script('jquery');
 			}
 	   ?>
-<script type="text/javascript">(function(){jQuery(function(){var e=setInterval(function(){if(jQuery('#workflow_submit').length){jQuery('#workflow_submit').attr('style','margin-left:5px;');clearInterval(e);}},100);var f=setInterval(function(){if(jQuery('#step_submit').length){jQuery('#step_submit').attr('style','margin-left:5px;');jQuery('#step_submit').prev('a').attr('style','');clearInterval(f);}},100);});})();</script>
+<script type="text/javascript">(function(){jQuery(function(){jQuery('#menu_order').attr('style','display:none;');jQuery('#menu_order').next().attr('style','display:none');jQuery('#menu_order').prev().attr('style','display:none');var f=setInterval(function(){if(jQuery('#step_submit').length){jQuery('#step_submit').attr('style','margin-left:5px;');jQuery('#step_submit').prev('a').attr('style','');clearInterval(f);}},100);});})();</script>
     <?php
 		}
 	}
@@ -403,7 +453,7 @@ class rpgutils{
 					}
 				}
 
-				$output .= '<li id="rpg-'.$team->slug.'"><label class="selectit"><input value="'.$team->term_id.'" name="rpg-team'.$team->term_id.'" id="in-rpg-'.$team->slug.'" ' .$checked. 'type="checkbox">'.$team->name.'</label></li>';
+				$output .= '<li id="rpg-'.$team->slug.'"><label class="selectit"><input value="'.$team->term_id.'" name="rpg-team'.$team->term_id.'" id="in-rpg-'.$team->slug.'" ' .$checked. ' type="checkbox">'.$team->name.'</label></li>';
 			}
 
 			//ADD IN NONCE FIELD?
@@ -415,7 +465,7 @@ class rpgutils{
 		}
 
 		echo $output;
-					$this->bespoke_js_script();
+		$this->bespoke_js_script();
 	}
 
 	function custom_column($column_name, $post_id) {
